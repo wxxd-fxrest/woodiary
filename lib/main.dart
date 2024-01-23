@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:woodiary/constants/sizes.dart';
 import 'package:woodiary/screens/main_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const WooDiary());
 }
 
