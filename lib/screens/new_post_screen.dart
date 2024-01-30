@@ -3,6 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:woodiary/constants/gaps.dart';
 import 'package:woodiary/constants/sizes.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 class NewPostScreen extends StatefulWidget {
   final String emotion;
@@ -24,14 +26,31 @@ class NewPostScreen extends StatefulWidget {
 
 class _NewPostScreenState extends State<NewPostScreen> {
   final TextEditingController _diaryTextController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
+    var uuid = const Uuid();
+    String newUuid = uuid.v4();
+
     IconData selectedIcon =
         NewPostScreen.emotionIcons[widget.emotion] ?? FontAwesomeIcons.question;
 
     String formattedDate = DateFormat('yyy/MM/dd')
         .format(DateTime.now()); // 오늘 날짜를 "년/월/일" 형식으로 포맷팅
+
+    void saveDataToFirebase(context) async {
+      // Firestore에 데이터 저장
+      await _firestore.collection('posts').add({
+        'uuid': newUuid,
+        'icon': widget.emotion,
+        'text': _diaryTextController.text,
+        'date': formattedDate,
+      });
+
+      // 저장 후 화면 닫기
+      Navigator.pop(context);
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -47,7 +66,7 @@ class _NewPostScreenState extends State<NewPostScreen> {
           IconButton(
             icon: const Icon(Icons.check), // 오른쪽에 추가할 아이콘
             onPressed: () {
-              // 아이콘을 눌렀을 때 수행할 동작
+              saveDataToFirebase(context);
             },
           ),
         ],
@@ -68,7 +87,7 @@ class _NewPostScreenState extends State<NewPostScreen> {
             Gaps.v20,
             Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: Sizes.size20,
+                horizontal: Sizes.size16,
               ),
               child: TextField(
                 controller: _diaryTextController,

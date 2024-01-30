@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:woodiary/constants/sizes.dart';
-import 'package:woodiary/screens/main_screen.dart';
+import 'package:woodiary/screens/auth/auth_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -23,7 +23,7 @@ class WooDiary extends StatelessWidget {
       title: 'WooDiary',
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
-        primaryColor: const Color(0xFFE9435A),
+        primaryColor: const Color(0xff73a379),
         appBarTheme: const AppBarTheme(
           foregroundColor: Colors.black,
           backgroundColor: Colors.white,
@@ -35,7 +35,7 @@ class WooDiary extends StatelessWidget {
           ),
         ),
       ),
-      home: const MainScreen(),
+      home: const AuthScreen(),
     );
   }
 }
