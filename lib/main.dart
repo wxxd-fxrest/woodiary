@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:woodiary/constants/sizes.dart';
 import 'package:woodiary/screens/auth/auth_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:woodiary/screens/main_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -14,11 +16,30 @@ void main() async {
   runApp(const WooDiary());
 }
 
-class WooDiary extends StatelessWidget {
+class WooDiary extends StatefulWidget {
   const WooDiary({super.key});
 
   @override
+  State<WooDiary> createState() => _WooDiaryState();
+}
+
+class _WooDiaryState extends State<WooDiary> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // FirebaseAuth의 로그인 상태 변경 이벤트를 구독
+    _auth.authStateChanges().listen((User? user) {
+      setState(() {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    User? user = _auth.currentUser;
+
     return MaterialApp(
       title: 'WooDiary',
       theme: ThemeData(
@@ -35,7 +56,7 @@ class WooDiary extends StatelessWidget {
           ),
         ),
       ),
-      home: const AuthScreen(),
+      home: user != null ? const MainScreen() : const AuthScreen(),
     );
   }
 }

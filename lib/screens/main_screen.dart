@@ -26,7 +26,7 @@ class _MainScreenState extends State<MainScreen> {
     _onScaffoldTap();
   }
 
-  void onClickOpenWrite() {
+  void _onClickOpenWrite() {
     _open = !_open;
     setState(() {});
   }
@@ -122,7 +122,7 @@ class _MainScreenState extends State<MainScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             GestureDetector(
-                              onTap: onClickOpenWrite,
+                              onTap: _onClickOpenWrite,
                               child: const FaIcon(
                                 FontAwesomeIcons.circlePlus,
                                 size: Sizes.size20 + Sizes.size28,

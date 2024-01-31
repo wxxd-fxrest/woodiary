@@ -1,14 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:woodiary/constants/sizes.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 
-class DrawerWidget extends StatelessWidget {
+class DrawerWidget extends StatefulWidget {
   const DrawerWidget({
     super.key,
   });
 
   @override
+  State<DrawerWidget> createState() => _DrawerWidgetState();
+}
+
+class _DrawerWidgetState extends State<DrawerWidget> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  @override
   Widget build(BuildContext context) {
+    void onLogout() async {
+      // Show confirmation dialog
+      bool logoutConfirmed = await showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: const Text('로그아웃'),
+            content: const Text('로그아웃 하시겠습니까?'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () {
+                  Navigator.of(context).pop(false); // Cancel logout
+                },
+                child: const Text(
+                  '취소',
+                  style: TextStyle(
+                    color: Colors.blue,
+                  ),
+                ),
+              ),
+              CupertinoDialogAction(
+                onPressed: () {
+                  Navigator.of(context).pop(true); // Confirm logout
+                },
+                child: const Text(
+                  '확인',
+                  style: TextStyle(
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+
+      // If user confirmed logout, sign out and update the UI
+      if (logoutConfirmed == true) {
+        await _auth.signOut();
+        setState(() {});
+      }
+    }
+
     return Drawer(
       backgroundColor: const Color(0xffdeeac9),
       child: ListView(
@@ -67,13 +119,12 @@ class DrawerWidget extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () {},
+            onTap: onLogout,
             child: const ListTile(
-              leading: Icon(Icons.home),
+              leading: Icon(Icons.logout),
               iconColor: Color(0xff73a379),
               focusColor: Color(0xff73a379),
-              title: Text('홈'),
-              trailing: Icon(Icons.navigate_next),
+              title: Text('로그아웃'),
             ),
           ),
         ],
