@@ -5,6 +5,7 @@ import 'package:woodiary/components/drawer_widget.dart';
 import 'package:woodiary/constants/gaps.dart';
 import 'package:woodiary/constants/sizes.dart';
 import 'package:woodiary/screens/new_post_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,6 +15,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  final firestore = FirebaseFirestore.instance;
+
   bool _open = false;
 
   void _onFaceIconTap(String emotion) {
@@ -98,6 +101,58 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ),
               ),
+              // StreamBuilder 추가
+              StreamBuilder(
+                stream: firestore.collection('posts').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  }
+
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                      return const CircularProgressIndicator();
+                    default:
+                      var querySnapshot = snapshot.data;
+                      if (querySnapshot == null || querySnapshot.docs.isEmpty) {
+                        return const Text('No documents in the collection');
+                      }
+
+                      // 컬렉션의 모든 문서에 대한 정보를 사용하여 렌더링
+                      return Column(
+                        children: querySnapshot.docs.map((doc) {
+                          var diaryDate = doc['date'];
+                          var diaryText = doc['text'];
+                          var diaryIcon = doc['icon'];
+
+                          return Column(
+                            children: [
+                              Text('date: $diaryDate'),
+                              Text('text: $diaryText'),
+                              Text('icon: $diaryIcon'),
+
+                              FaIcon(
+                                diaryIcon == 'faceSmile'
+                                    ? FontAwesomeIcons.faceSmile
+                                    : diaryIcon == 'faceLaughSquint'
+                                        ? FontAwesomeIcons.faceLaughSquint
+                                        : diaryIcon == 'faceFrown'
+                                            ? FontAwesomeIcons.faceFrown
+                                            : diaryIcon == 'faceAngry'
+                                                ? FontAwesomeIcons.faceAngry
+                                                : diaryIcon == 'faceSadTear'
+                                                    ? FontAwesomeIcons
+                                                        .faceSadTear
+                                                    : null,
+                              )
+                              // 필요한 데이터에 따라 추가적인 Text 위젯들을 만들어 출력할 수 있습니다.
+                            ],
+                          );
+                        }).toList(),
+                      );
+                  }
+                },
+              ),
             ],
           ),
         ),
@@ -114,7 +169,6 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                     width: 100,
                     height: 220,
-                    // color: Colors.blue,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
