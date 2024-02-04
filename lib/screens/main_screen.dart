@@ -6,6 +6,7 @@ import 'package:woodiary/constants/gaps.dart';
 import 'package:woodiary/constants/sizes.dart';
 import 'package:woodiary/screens/new_post_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:woodiary/screens/main/month_calendar_widget.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,6 +18,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final firestore = FirebaseFirestore.instance;
 
+  late DateTime selectedDate;
   bool _open = false;
 
   void _onFaceIconTap(String emotion) {
@@ -41,13 +43,24 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {});
   }
 
-  String formattedYear =
-      DateFormat('yyy').format(DateTime.now()); // 오늘 날짜를 "년/월/일" 형식으로 포맷팅
-  String formattedMonth =
-      DateFormat('MM').format(DateTime.now()); // 오늘 날짜를 "년/월/일" 형식으로 포맷팅
+  @override
+  void initState() {
+    super.initState();
+    selectedDate = DateTime.now();
+  }
+
+  void _updateSelectedDate(int monthsToAdd) {
+    setState(() {
+      selectedDate = DateTime(selectedDate.year,
+          selectedDate.month + monthsToAdd, selectedDate.day);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    String formattedYear = DateFormat('yyyy').format(selectedDate);
+    String formattedMonth = DateFormat('MM').format(selectedDate);
+
     return GestureDetector(
       onTap: _onScaffoldTap,
       child: Scaffold(
@@ -81,25 +94,42 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ),
               ),
-              Container(
-                child: Column(
-                  children: [
-                    Gaps.v10,
-                    Text(
-                      '$formattedYear년',
-                      style: const TextStyle(
-                        fontSize: Sizes.size16,
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: () => _updateSelectedDate(-1), // 한 달 전
+                    child: const FaIcon(
+                      FontAwesomeIcons.angleLeft,
+                      color: Color(0xff73a379),
                     ),
-                    Text(
-                      '$formattedMonth월',
-                      style: const TextStyle(
-                        fontSize: Sizes.size24,
-                        fontWeight: FontWeight.bold,
+                  ),
+                  Column(
+                    children: [
+                      Gaps.v10,
+                      Text(
+                        '$formattedYear년',
+                        style: const TextStyle(
+                          fontSize: Sizes.size16,
+                        ),
                       ),
+                      Text(
+                        '$formattedMonth월',
+                        style: const TextStyle(
+                          fontSize: Sizes.size24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: () => _updateSelectedDate(1), // 한 달 후
+                    child: const FaIcon(
+                      FontAwesomeIcons.angleRight,
+                      color: Color(0xff73a379),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               // StreamBuilder 추가
               StreamBuilder(
@@ -119,36 +149,9 @@ class _MainScreenState extends State<MainScreen> {
                       }
 
                       // 컬렉션의 모든 문서에 대한 정보를 사용하여 렌더링
-                      return Column(
-                        children: querySnapshot.docs.map((doc) {
-                          var diaryDate = doc['date'];
-                          var diaryText = doc['text'];
-                          var diaryIcon = doc['icon'];
-
-                          return Column(
-                            children: [
-                              Text('date: $diaryDate'),
-                              Text('text: $diaryText'),
-                              Text('icon: $diaryIcon'),
-
-                              FaIcon(
-                                diaryIcon == 'faceSmile'
-                                    ? FontAwesomeIcons.faceSmile
-                                    : diaryIcon == 'faceLaughSquint'
-                                        ? FontAwesomeIcons.faceLaughSquint
-                                        : diaryIcon == 'faceFrown'
-                                            ? FontAwesomeIcons.faceFrown
-                                            : diaryIcon == 'faceAngry'
-                                                ? FontAwesomeIcons.faceAngry
-                                                : diaryIcon == 'faceSadTear'
-                                                    ? FontAwesomeIcons
-                                                        .faceSadTear
-                                                    : null,
-                              )
-                              // 필요한 데이터에 따라 추가적인 Text 위젯들을 만들어 출력할 수 있습니다.
-                            ],
-                          );
-                        }).toList(),
+                      return MonthCalendarWidget(
+                        querySnapshot: querySnapshot,
+                        selectedDate: selectedDate,
                       );
                   }
                 },
@@ -165,10 +168,13 @@ class _MainScreenState extends State<MainScreen> {
                   bottom: 0,
                   child: Container(
                     padding: const EdgeInsets.only(
-                      top: Sizes.size64 + Sizes.size64,
+                        // top: Sizes.size64 + Sizes.size64,
+                        ),
+                    decoration: const BoxDecoration(
+                      color: Colors.blue,
                     ),
                     width: 100,
-                    height: 220,
+                    height: 120,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
