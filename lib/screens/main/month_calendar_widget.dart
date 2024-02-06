@@ -32,28 +32,11 @@ class _MonthCalendarWidgetState extends State<MonthCalendarWidget> {
     currentDate = widget.selectedDate;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 5,
-        ),
-        itemCount: getDaysInMonth(currentDate),
-        itemBuilder: (context, index) {
-          return DayWidget(
-            day: index + 1,
-            querySnapshot: widget.querySnapshot,
-          );
-        },
-      ),
-    );
-  }
-
   int getDaysInMonth(DateTime date) {
     DateTime firstDayOfNextMonth = DateTime(date.year, date.month + 1, 1);
     DateTime lastDayOfThisMonth =
         firstDayOfNextMonth.subtract(const Duration(days: 1));
+
     return lastDayOfThisMonth.day;
   }
 
@@ -62,19 +45,53 @@ class _MonthCalendarWidgetState extends State<MonthCalendarWidget> {
       currentDate = newDate;
     });
   }
+
+  @override
+  Widget build(BuildContext context) {
+    int daysInMonth = getDaysInMonth(currentDate);
+    List<int> daysList = List.generate(daysInMonth, (index) => index + 1);
+    int year = currentDate.year; // 현재 선택된 날짜의 연도
+    int month = currentDate.month; // 현재 선택된 날짜의 월
+
+    return Expanded(
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5,
+        ),
+        itemCount: daysInMonth,
+        itemBuilder: (context, index) {
+          return DayWidget(
+            year: year,
+            month: month, // 수정: 월 정보도 전달
+            day: daysList[index],
+            querySnapshot: widget.querySnapshot,
+          );
+        },
+      ),
+    );
+  }
 }
 
 class DayWidget extends StatelessWidget {
+  final int year; // 수정: 연도 정보를 저장할 변수
+  final int month; // 수정: 월 정보를 저장할 변수
   final int day;
   final QuerySnapshot<Map<String, dynamic>>? querySnapshot;
 
-  const DayWidget({Key? key, required this.day, this.querySnapshot})
+  const DayWidget(
+      {Key? key,
+      required this.day,
+      this.querySnapshot,
+      required this.year,
+      required this.month})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // 현재 맵핑되는 날짜
-    String currentMappedDate = DateFormat('yyyy/MM/dd').format(DateTime.now());
+    // String currentMappedDate = DateFormat('yyyy/MM/dd').format(DateTime.now());
+
+    String ddd = DateFormat('yyyy/MM/dd').format(DateTime(year, month, day));
 
     // querySnapshot을 List로 변환
     List<QueryDocumentSnapshot<Map<String, dynamic>>>? documentList =
@@ -94,9 +111,10 @@ class DayWidget extends StatelessWidget {
               if (diaryDate is String) {
                 // String 타입인 경우 직접 사용
                 var formattedDiaryDate = diaryDate;
+                print('cl $formattedDiaryDate');
 
-                if (formattedDiaryDate == currentMappedDate) {
-                  var diaryText = doc['text'];
+                if (formattedDiaryDate == ddd) {
+                  // var diaryText = doc['text'];
                   var diaryIcon = doc['icon'];
 
                   return Column(
@@ -107,8 +125,8 @@ class DayWidget extends StatelessWidget {
                         ),
                         child: Column(
                           children: [
-                            Text('date: $formattedDiaryDate'),
-                            Text('text: $diaryText'),
+                            // Text('date: $formattedDiaryDate'),
+                            // Text('text: $diaryText'),
                             FaIcon(
                               diaryIcon == 'faceSmile'
                                   ? FontAwesomeIcons.faceSmile
