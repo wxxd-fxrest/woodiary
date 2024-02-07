@@ -165,7 +165,7 @@ class _MainScreenState extends State<MainScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Positioned(
-                  bottom: 0,
+                  // bottom: 0,
                   child: Container(
                     padding: const EdgeInsets.only(
                         // top: Sizes.size64 + Sizes.size64,
@@ -283,3 +283,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+
+// 플러스 버튼 클릭 시 나타나는 위젯이 반쯤 아래로 내려가 잘림
+// 플러스 버튼 클릭 시 화면이 깜빡임 
+// 플러스 버튼 클릭 시 나타나는 위젯을 다시 내리기 위해 뒷 배경을 클릭할 경우 위젯만 사라지고 뒤에 캘린더는 클릭 되지 않도록 해야 함 
