@@ -9,7 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:woodiary/screens/main/month_calendar_widget.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  const MainScreen({Key? key}) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -32,8 +32,9 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _onClickOpenWrite() {
-    _open = !_open;
-    setState(() {});
+    setState(() {
+      _open = !_open;
+    });
   }
 
   void _onScaffoldTap() {
@@ -62,7 +63,12 @@ class _MainScreenState extends State<MainScreen> {
     String formattedMonth = DateFormat('MM').format(selectedDate);
 
     return GestureDetector(
-      onTap: _onScaffoldTap,
+      onTap: () {
+        if (_open) {
+          _onClickOpenWrite();
+        }
+      },
+// 전체 화면 터치 시 아무 동작도 하지 않도록 설정
       child: Scaffold(
         backgroundColor: _open == false ? Colors.white : Colors.grey.shade300,
         drawer: const DrawerWidget(),
@@ -165,16 +171,12 @@ class _MainScreenState extends State<MainScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Positioned(
-                  // bottom: 0,
                   child: Container(
                     padding: const EdgeInsets.only(
-                        // top: Sizes.size64 + Sizes.size64,
-                        ),
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
+                      top: Sizes.size24,
                     ),
                     width: 100,
-                    height: 120,
+                    height: 160,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -284,6 +286,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
+
 // 플러스 버튼 클릭 시 나타나는 위젯이 반쯤 아래로 내려가 잘림
-// 플러스 버튼 클릭 시 화면이 깜빡임 
-// 플러스 버튼 클릭 시 나타나는 위젯을 다시 내리기 위해 뒷 배경을 클릭할 경우 위젯만 사라지고 뒤에 캘린더는 클릭 되지 않도록 해야 함 
+// 플러스 버튼 클릭 시 화면이 깜빡임
+// 플러스 버튼 클릭 시 나타나는 위젯을 다시 내리기 위해 뒷 배경을 클릭할 경우 위젯만 사라지고 뒤에 캘린더는 클릭 되지 않도록 해야 함

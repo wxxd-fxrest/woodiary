@@ -21,17 +21,23 @@ class MonthCalendarWidget extends StatefulWidget {
 
 class _MonthCalendarWidgetState extends State<MonthCalendarWidget> {
   late DateTime currentDate;
+  late QuerySnapshot<Map<String, dynamic>>? _currentQuerySnapshot;
 
   @override
   void initState() {
     super.initState();
     currentDate = widget.selectedDate;
+    _currentQuerySnapshot = widget.querySnapshot;
   }
 
   @override
-  void didUpdateWidget(covariant MonthCalendarWidget oldWidget) {
+  void didUpdateWidget(MonthCalendarWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    currentDate = widget.selectedDate;
+    if (widget.querySnapshot != _currentQuerySnapshot) {
+      setState(() {
+        _currentQuerySnapshot = widget.querySnapshot;
+      });
+    }
   }
 
   int getDaysInMonth(DateTime date) {
@@ -56,22 +62,33 @@ class _MonthCalendarWidgetState extends State<MonthCalendarWidget> {
         ),
         itemCount: daysInMonth,
         itemBuilder: (context, index) {
+          bool hasData = false;
+          if (_currentQuerySnapshot != null) {
+            String formattedDate = DateFormat('yyyy/MM/dd')
+                .format(DateTime(year, month, daysList[index]));
+            hasData = _currentQuerySnapshot!.docs
+                .any((doc) => doc['date'] == formattedDate);
+          }
+
           return GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => DayDetailsScreen(
-                  year: year,
-                  month: month,
-                  day: daysList[index],
-                  querySnapshot: widget.querySnapshot,
-                ),
-              ));
-            },
+            key: UniqueKey(),
+            onTap: hasData
+                ? () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => DayDetailsScreen(
+                        year: year,
+                        month: month,
+                        day: daysList[index],
+                        querySnapshot: _currentQuerySnapshot,
+                      ),
+                    ));
+                  }
+                : null,
             child: DayWidget(
               year: year,
               month: month,
               day: daysList[index],
-              querySnapshot: widget.querySnapshot,
+              querySnapshot: _currentQuerySnapshot,
             ),
           );
         },
@@ -101,53 +118,48 @@ class DayWidget extends StatelessWidget {
     List<QueryDocumentSnapshot<Map<String, dynamic>>>? documentList =
         querySnapshot?.docs.toList();
 
+    // querySnapshot이 없거나 documentList가 비어있으면 빈 컨테이너를 반환하여 렌더링을 피합니다.
+    if (querySnapshot == null || documentList == null || documentList.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: const BoxDecoration(),
       child: Column(
         children: [
           Text('Day $day'),
-          if (documentList != null)
-            ...documentList.map((doc) {
-              var diaryDate = doc['date'];
-
-              if (diaryDate is String) {
-                var formattedDiaryDate = diaryDate;
-                if (formattedDiaryDate == formattedDate) {
-                  var diaryIcon = doc['icon'];
-
-                  return Column(
-                    children: [
-                      Container(
-                        decoration: const BoxDecoration(),
-                        child: Column(
-                          children: [
-                            FaIcon(
-                              diaryIcon == 'faceSmile'
-                                  ? FontAwesomeIcons.faceSmile
-                                  : diaryIcon == 'faceLaughSquint'
-                                      ? FontAwesomeIcons.faceLaughSquint
-                                      : diaryIcon == 'faceFrown'
-                                          ? FontAwesomeIcons.faceFrown
-                                          : diaryIcon == 'faceAngry'
-                                              ? FontAwesomeIcons.faceAngry
-                                              : diaryIcon == 'faceSadTear'
-                                                  ? FontAwesomeIcons.faceSadTear
-                                                  : null,
-                              size: 36,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                }
-              }
-              return Container();
-            }).toList(),
+          for (var doc in documentList) ...[
+            if (doc['date'] == formattedDate)
+              Container(
+                decoration: const BoxDecoration(),
+                child: FaIcon(
+                  _getDiaryIcon(doc['icon'] as String? ?? ''),
+                  size: 36,
+                ),
+              ),
+          ],
         ],
       ),
     );
+  }
+
+  // 일기 아이콘을 반환하는 함수
+  IconData _getDiaryIcon(String icon) {
+    switch (icon) {
+      case 'faceSmile':
+        return FontAwesomeIcons.faceSmile;
+      case 'faceLaughSquint':
+        return FontAwesomeIcons.faceLaughSquint;
+      case 'faceFrown':
+        return FontAwesomeIcons.faceFrown;
+      case 'faceAngry':
+        return FontAwesomeIcons.faceAngry;
+      case 'faceSadTear':
+        return FontAwesomeIcons.faceSadTear;
+      default:
+        return FontAwesomeIcons.question; // 기본값으로 question 아이콘 사용
+    }
   }
 }
 
