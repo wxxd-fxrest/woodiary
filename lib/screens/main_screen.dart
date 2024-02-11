@@ -57,6 +57,22 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  // 화면을 스와이프하여 이전 달 또는 다음 달로 이동합니다.
+  void _onHorizontalDragUpdate(DragUpdateDetails details) {
+    // 스와이프 거리가 일정 수준 이상인 경우에만 처리합니다.
+    if (details.delta.dx.abs() > 50) {
+      // 임계값을 50으로 변경
+      // 오른쪽으로 스와이프한 경우
+      if (details.delta.dx > 0) {
+        _updateSelectedDate(-1); // 이전 달로 이동
+      }
+      // 왼쪽으로 스와이프한 경우
+      else {
+        _updateSelectedDate(1); // 다음 달로 이동
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     String formattedYear = DateFormat('yyyy').format(selectedDate);
@@ -67,8 +83,8 @@ class _MainScreenState extends State<MainScreen> {
         if (_open) {
           _onClickOpenWrite();
         }
-      },
-// 전체 화면 터치 시 아무 동작도 하지 않도록 설정
+      }, // 전체 화면 터치 시 아무 동작도 하지 않도록 설정
+      onHorizontalDragUpdate: _onHorizontalDragUpdate, // 스와이프 동작 처리
       child: Scaffold(
         backgroundColor: _open == false ? Colors.white : Colors.grey.shade300,
         drawer: const DrawerWidget(),
@@ -100,42 +116,49 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => _updateSelectedDate(-1), // 한 달 전
-                    child: const FaIcon(
-                      FontAwesomeIcons.angleLeft,
-                      color: Color(0xff73a379),
-                    ),
-                  ),
-                  Column(
-                    children: [
-                      Gaps.v10,
-                      Text(
-                        '$formattedYear년',
-                        style: const TextStyle(
-                          fontSize: Sizes.size16,
-                        ),
+              Container(
+                padding: const EdgeInsets.only(
+                  left: Sizes.size24,
+                  right: Sizes.size24,
+                ),
+                decoration: const BoxDecoration(),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _updateSelectedDate(-1), // 한 달 전
+                      child: const FaIcon(
+                        FontAwesomeIcons.angleLeft,
+                        color: Color(0xff73a379),
                       ),
-                      Text(
-                        '$formattedMonth월',
-                        style: const TextStyle(
-                          fontSize: Sizes.size24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  GestureDetector(
-                    onTap: () => _updateSelectedDate(1), // 한 달 후
-                    child: const FaIcon(
-                      FontAwesomeIcons.angleRight,
-                      color: Color(0xff73a379),
                     ),
-                  ),
-                ],
+                    Column(
+                      children: [
+                        Gaps.v10,
+                        Text(
+                          '$formattedYear년',
+                          style: const TextStyle(
+                            fontSize: Sizes.size16,
+                          ),
+                        ),
+                        Text(
+                          '$formattedMonth월',
+                          style: const TextStyle(
+                            fontSize: Sizes.size24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () => _updateSelectedDate(1), // 한 달 후
+                      child: const FaIcon(
+                        FontAwesomeIcons.angleRight,
+                        color: Color(0xff73a379),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               // StreamBuilder 추가
               StreamBuilder(
