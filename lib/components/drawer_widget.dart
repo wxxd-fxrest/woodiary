@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:woodiary/constants/sizes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:woodiary/screens/edit_profile_screen.dart';
 
 class DrawerWidget extends StatefulWidget {
   const DrawerWidget({
@@ -15,6 +17,46 @@ class DrawerWidget extends StatefulWidget {
 
 class _DrawerWidgetState extends State<DrawerWidget> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final firestore = FirebaseFirestore.instance;
+
+  late String userEmail = '';
+  late String userName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    getDataForCurrentUser();
+  }
+
+  void getDataForCurrentUser() async {
+    // 현재 사용자의 정보 가져오기
+    User? user = _auth.currentUser;
+
+    if (user != null) {
+      // 현재 사용자의 UID 가져오기
+      String useremail = user.email!;
+
+      try {
+        // 해당 UID를 사용하여 users 컬렉션에서 해당 사용자의 문서 가져오기
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(useremail)
+            .get();
+
+        // 문서에서 데이터 가져오기
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+
+        // 가져온 데이터 사용하기
+        userEmail = userData['email'];
+        userName = userData['username'];
+
+        // setState 호출하여 위젯에 데이터 변경을 알림
+        setState(() {});
+      } catch (e) {
+        print('Error fetching user data: $e');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +116,14 @@ class _DrawerWidgetState extends State<DrawerWidget> {
             otherAccountsPictures: [
               GestureDetector(
                 onTap: () {
-                  print('edit click');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfileScreen(
+                        userName: userName,
+                      ), // 프로필 수정 페이지로 이동
+                    ),
+                  );
                 },
                 child: const FaIcon(
                   FontAwesomeIcons.pen,
@@ -83,15 +132,15 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 ),
               ),
             ],
-            accountName: const Text(
-              '로기',
-              style: TextStyle(
+            accountName: Text(
+              userName,
+              style: const TextStyle(
                 color: Colors.black87,
               ),
             ),
-            accountEmail: const Text(
-              'wood@naver.com',
-              style: TextStyle(
+            accountEmail: Text(
+              userEmail,
+              style: const TextStyle(
                 color: Colors.black87,
               ),
             ),

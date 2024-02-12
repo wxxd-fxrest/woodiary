@@ -61,8 +61,9 @@ class _JoinScreenState extends State<JoinScreen> {
           );
 
           // 성공적으로 생성된 경우 Firestore에 데이터 추가 및 화면 이동
-          await _firestore.collection('users').add({
+          await _firestore.collection('users').doc(_emailController.text).set({
             'email': _emailController.text,
+            'username': _emailController.text.split('@').first
           });
 
           Navigator.of(context).pushAndRemoveUntil(

@@ -109,10 +109,6 @@ class _MainScreenState extends State<MainScreen> {
                         );
                       },
                     ),
-                    const FaIcon(
-                      FontAwesomeIcons.house,
-                      color: Color(0xff73a379),
-                    ),
                   ],
                 ),
               ),
