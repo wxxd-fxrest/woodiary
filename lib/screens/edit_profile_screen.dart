@@ -1,14 +1,16 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:woodiary/constants/gaps.dart';
 import 'package:woodiary/constants/sizes.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String userName;
+  final String userEmail;
 
-  const EditProfileScreen({Key? key, required this.userName}) : super(key: key);
+  const EditProfileScreen(
+      {Key? key, required this.userName, required this.userEmail})
+      : super(key: key);
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -17,16 +19,6 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
-
-  XFile? _imageFile;
-
-  Future<void> _pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-    setState(() {
-      _imageFile = pickedFile;
-    });
-  }
 
   void _onScaffoldTap() {
     FocusScope.of(context).unfocus();
@@ -37,6 +29,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.clear();
   }
 
+  void _onUpdateProfile() {
+    // Firestore 컬렉션 레퍼런스 설정
+    CollectionReference users = FirebaseFirestore.instance.collection('users');
+
+    // 수정할 데이터
+    Map<String, dynamic> updatedData = {
+      'username': _nameController.text, // 사용자명 수정
+      // 추가적인 필드도 필요하다면 여기에 추가
+    };
+
+    // 해당 사용자의 데이터 업데이트
+    users
+        .doc(widget.userEmail) // 사용자의 문서에 접근
+        .update(updatedData) // 데이터 업데이트
+        .then((value) {
+      // 업데이트 성공
+      // print("사용자 데이터 업데이트 완료");
+    }).catchError((error) {
+      // 업데이트 실패
+      // print("사용자 데이터 업데이트 실패: $error");
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -44,7 +59,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text(
-            '회원가입',
+            '프로필 수정',
           ),
         ),
         body: Padding(
@@ -54,36 +69,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Gaps.v40,
-                const Text(
-                  '가입을 진행해 주세요.',
-                  style: TextStyle(
-                    fontSize: Sizes.size24 - Sizes.size2,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
                 Gaps.v32,
                 Column(
                   children: [
                     GestureDetector(
-                      onTap: () => _pickImage(ImageSource.gallery),
+                      onTap: () {},
                       child: Container(
                         height: 200,
                         width: 200,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          image: _imageFile != null
-                              ? DecorationImage(
-                                  image: FileImage(
-                                      File(_imageFile!.path)), // 수정된 부분
-                                  fit: BoxFit.cover,
-                                )
-                              : const DecorationImage(
-                                  image: AssetImage(
-                                    'assets/image/0b2fd4801d03fde3a349ac1ffca4dc73.jpg',
-                                  ),
-                                  fit: BoxFit.cover,
-                                ),
+                          image: DecorationImage(
+                            image: AssetImage(
+                              'assets/image/0b2fd4801d03fde3a349ac1ffca4dc73.jpg',
+                            ),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
@@ -138,7 +139,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           elevation: 0,
           color: Colors.white,
           child: GestureDetector(
-            onTap: () {},
+            onTap: _onUpdateProfile,
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(
@@ -148,7 +149,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               child: const Center(
                 child: Text(
-                  '회원가입',
+                  '수정하기',
                   style: TextStyle(
                     fontSize: Sizes.size16,
                     fontWeight: FontWeight.w400,

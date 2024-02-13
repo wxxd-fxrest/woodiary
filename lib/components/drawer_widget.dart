@@ -33,28 +33,29 @@ class _DrawerWidgetState extends State<DrawerWidget> {
     User? user = _auth.currentUser;
 
     if (user != null) {
-      // 현재 사용자의 UID 가져오기
       String useremail = user.email!;
 
-      try {
-        // 해당 UID를 사용하여 users 컬렉션에서 해당 사용자의 문서 가져오기
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(useremail)
-            .get();
+      // 해당 사용자의 문서에 대한 실시간 스트림 설정
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(useremail)
+          .snapshots()
+          .listen((DocumentSnapshot snapshot) {
+        if (snapshot.exists) {
+          // 문서에서 데이터 가져오기
+          Map<String, dynamic> userData =
+              snapshot.data() as Map<String, dynamic>;
 
-        // 문서에서 데이터 가져오기
-        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+          // 가져온 데이터 사용하기
+          userEmail = userData['email'];
+          userName = userData['username'];
 
-        // 가져온 데이터 사용하기
-        userEmail = userData['email'];
-        userName = userData['username'];
-
-        // setState 호출하여 위젯에 데이터 변경을 알림
-        setState(() {});
-      } catch (e) {
-        print('Error fetching user data: $e');
-      }
+          // setState 호출하여 위젯에 데이터 변경을 알림
+          setState(() {});
+        } else {
+          // print('사용자 문서가 존재하지 않습니다.');
+        }
+      });
     }
   }
 
@@ -121,6 +122,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                     MaterialPageRoute(
                       builder: (context) => EditProfileScreen(
                         userName: userName,
+                        userEmail: userEmail,
                       ), // 프로필 수정 페이지로 이동
                     ),
                   );
